@@ -1,77 +1,58 @@
+/* eslint-disable no-unused-vars */
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
+// import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+// import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useForm } from "react-hook-form";
+import { useState } from 'react';
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import { useAuth } from '../../context/authContext';
 
-// const theme = createTheme();
+import { useNavigate } from "react-router-dom";
 
-const theme = createTheme({
-    palette: {
-      primary: {
-        // light: will be calculated from palette.primary.main,
-        main: '#ff4400',
-        // dark: will be calculated from palette.primary.main,
-        // contrastText: will be calculated to contrast with palette.primary.main
-      },
-      secondary: {
-        light: '#0066ff',
-        main: '#3aeb34',
-        // dark: will be calculated from palette.secondary.main,
-        contrastText: '#ffcc00',
-      },
-       // Provide every color token (light, main, dark, and contrastText) when using
-       // custom colors for props in Material UI's components.
-       // Then you will be able to use it like this: `<Button color="custom">`
-       // (For TypeScript, you need to add module augmentation for the `custom` value)
-      custom: {
-        light: '#34b7eb',
-        main: '#8c34eb',
-        dark: '#cceb34',
-        contrastText: 'rgba(0, 0, 0, 0.87)',
-      },
-      // Used by `getContrastText()` to maximize the contrast between
-      // the background and the text.
-      contrastThreshold: 3,
-      // Used by the functions below to shift a color's luminance by approximately
-      // two indexes within its tonal palette.
-      // E.g., shift from Red 500 to Red 300 or Red 700.
-      tonalOffset: 0.2,
-    },
-  });
+//servicio de Auth de firebase
+// import { createUser, sendEmail } from '../../services/auth'; 
 
-
+const theme = createTheme();
 
 export default function SignIn() {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+
+  const [user, setUser] = useState({
+    email:'',
+    password:''
+  });
+
+  const [errorMsg, setError] = useState();
+
+  const { signIn } = useAuth();
+
+  const navigate = useNavigate();
+
+  const { register, handleSubmit, formState: { errors }} = useForm();
+
+  const onSubmit = async (data,e) => {
+    console.log(data);
+    setUser(data);
+    setError('');
+    try{
+      await signIn(data.email, data.password);
+      navigate('/home')
+      // e.target.reset()
+    } 
+    catch(error){
+      console.log(error.code);
+      if(error.code === 'auth/weak-password'){
+        setError('La contraseña debe ser mayor a 6 carácteres')
+      }
+    }
   };
 
   return (
@@ -86,61 +67,59 @@ export default function SignIn() {
             alignItems: 'center',
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Sign up
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  autoComplete="email"
+                  {...register("email", { 
+                    required: true,
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    }
+                  })}
+                  error={!!errors?.email}
+
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  // required
+                  fullWidth
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="password"
+                  {...register("password", { required: true })}
+                  error={!!errors?.password}
+                />
+                {errorMsg && <span>{errorMsg}</span>  }
+              </Grid>
+            </Grid>
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              color="custom"
             >
               Sign In
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
+            <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link href="#" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                  Already have an account? Sign in
                 </Link>
               </Grid>
             </Grid>
-          </Box>
+          </form>
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>
   );

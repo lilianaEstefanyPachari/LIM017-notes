@@ -1,41 +1,59 @@
+/* eslint-disable no-unused-vars */
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useForm } from "react-hook-form";
+import { useState } from 'react';
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import { useAuth } from '../../context/authContext';
+
+import { useNavigate } from "react-router-dom";
+
+//servicio de Auth de firebase
+// import { createUser, sendEmail } from '../../services/auth'; 
 
 const theme = createTheme();
 
 export default function SignUp() {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+  //hook useState para inputs
+  const [user, setUser] = useState({
+    userName:'',
+    email:'',
+    password:''
+  });
+  //hook useState para error
+  const [errorMsg, setError] = useState();
+  //hook personalizado
+  const { signup } = useAuth();
+
+  const navigate = useNavigate();
+
+  const { register, handleSubmit, formState: { errors }} = useForm();
+
+  const onSubmit = async (data,e) => {
+    setUser(data);
+    console.log(data);
+
+    setError('');
+    try{
+      await signup(data.email, data.password);
+      navigate('/login')
+      e.target.reset()
+    } 
+    catch(error){
+      console.log(error.code);
+      if(error.code === 'auth/weak-password'){
+        setError('La contraseña debe ser mayor a 6 carácteres')
+      }
+    }
+
   };
 
   return (
@@ -50,61 +68,52 @@ export default function SignUp() {
             alignItems: 'center',
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} >
                 <TextField
-                  autoComplete="given-name"
-                  name="firstName"
-                  required
+                  autoComplete="name"
+                  // required
                   fullWidth
-                  id="firstName"
-                  label="First Name"
+                  id="userName"
+                  label="User Name"
                   autoFocus
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
+                  {...register("userName", { required: true })}
+                  error={!!errors?.userName}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
                   fullWidth
                   id="email"
                   label="Email Address"
-                  name="email"
                   autoComplete="email"
+                  {...register("email", { 
+                    required: true,
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    }
+                  })}
+                  error={!!errors?.email}
+
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
+                  // required
                   fullWidth
-                  name="password"
                   label="Password"
                   type="password"
                   id="password"
-                  autoComplete="new-password"
+                  autoComplete="password"
+                  {...register("password", { required: true })}
+                  error={!!errors?.password}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive inspiration, marketing promotions and updates via email."
-                />
+                {errorMsg && <span>{errorMsg}</span>  }
               </Grid>
             </Grid>
             <Button
@@ -122,9 +131,8 @@ export default function SignUp() {
                 </Link>
               </Grid>
             </Grid>
-          </Box>
+          </form>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>
   );

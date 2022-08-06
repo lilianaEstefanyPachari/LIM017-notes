@@ -8,8 +8,15 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useAuth } from '../../context/authContext';
+
+// import { useContext } from 'react';
+// import { context } from '../../context/authContext';
 
 function Copyright(props) {
+
+
+
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
@@ -29,6 +36,11 @@ export default function Welcome() {
     event.preventDefault();
     console.log('welcomeeeeee');
   };
+
+  // const authContext = useContext(context);
+  // console.log(authContext)
+  const {user}= useAuth();
+  console.log(user)
 
   return (
     <ThemeProvider theme={theme}>
