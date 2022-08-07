@@ -9,9 +9,10 @@ import Welcome from './components/pages/welcome';
 import RegisterUser from './components/pages/registerUser';
 import LoginUser from './components/pages/loginUser';
 import Home from './components/pages/home';
+import Homepage from './components/pages/homepage';
+
 
 import { AuthProvider } from './context/authContext';
-
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="login" element={<LoginUser />} />
           <Route path="register" element={<RegisterUser />} />
           <Route path="home" element={<Home />} />
+          <Route path="homepage" element={<Homepage />} />
         </Routes>
       </AuthProvider>
     </div>
