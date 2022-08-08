@@ -12,17 +12,18 @@ import Button from '@mui/material/Button';
 
 
 import {
-    updateData, setDataInFirestore
+    updateData, 
+    setDataInFirestore, 
+    deleteDocFirestore
 } from '../../services/firestore';
 
 export const Homepage = () => {
-    // const { user } = useAuth();
 
     const [notes, setNotes] = useState([]);
     const [form, setForm] = useState({
         title: '',
         desc: '',
-        tasks: ['']
+        tasks: []
     });
 
     const [popupActive, setPopupActive] = useState(false);
@@ -32,7 +33,7 @@ export const Homepage = () => {
         setForm({
             title: '',
             desc: '',
-            tasks: ['']
+            tasks: []
         })
 
     };
@@ -52,6 +53,7 @@ export const Homepage = () => {
             }
         });
         setNotes(notesClone);
+
     }
 
     const handleSubmitNewNote = e => {
@@ -59,7 +61,8 @@ export const Homepage = () => {
         if (
             !form.title ||
             !form.desc ||
-            !form.tasks
+            !form.tasks ||
+            form.tasks.includes("")
         ) {
             alert('please fill out all fields')
         } else {
@@ -67,9 +70,9 @@ export const Homepage = () => {
             setForm({
                 title: '',
                 desc: '',
-                tasks: ['']
-            })
-            console.log('holisss handlesubmit')
+                tasks: []
+            });
+            setPopupActive(false);
         }
     };
 
@@ -81,11 +84,25 @@ export const Homepage = () => {
             tasks: tasksClone
         });
     }
-    const handleTaskCount = () => {
+    const handleAddTaskCount = () => {
+        if (!form.tasks.includes("")) {
+            setForm({
+                ...form,
+                tasks: [...form.tasks, ""]
+            })
+        }
+    }
+
+    const handleRemoveTask = (i) => {
+        const tasksClone = [...form.tasks];
         setForm({
             ...form,
-            tasks: [...form.tasks, ""]
-        })
+            tasks: tasksClone.filter(task => task !== tasksClone[i] )
+        });
+    }
+    
+    const removeNote = (id) => {
+        deleteDocFirestore(id)
     }
 
     return (
@@ -99,16 +116,20 @@ export const Homepage = () => {
                         <p dangerouslySetInnerHTML={{ __html: note.desc }}></p>
                         {note.viewing && <div>
                             <h4>Task</h4>
-                            <ul>
-                                {note.tasks.map((task, i) => (
-                                    <li key={i}>{task}</li>
-                                ))}
-                            </ul>
+                            {note.tasks.length === 0 ?
+                                (<p>No tasks</p>)
+                                : <ul>
+                                    {note.tasks.map((task, i) => (
+                                        <li key={i}>{task}</li>
+                                    ))}
+                                </ul>
+                            }
+
                         </div>
                         }
                         <div className='buttons'>
                             <button onClick={() => handleView(note.id)}>view {note.viewing ? 'less' : 'more'}</button>
-                            <button className='remove'>Remove</button>
+                            <button className='remove' onClick={() => removeNote(note.id)}>Remove</button>
                         </div>
                     </div>
                 ))}
@@ -139,21 +160,23 @@ export const Homepage = () => {
                             />
                         </Box>
                         <Box mb={2}>
-                            <p>Tasks</p>
                             {
                                 form.tasks.map((task, i) => (
-                                    <TextField
-                                        key={i}
-                                        fullWidth
-                                        id="outlined-basic"
-                                        label="Tasks"
-                                        variant="outlined"
-                                        value={task}
-                                        onChange={e => handleTask(e, i)}
-                                    />
+                                    <>
+                                        <TextField
+                                            key={i}
+                                            fullWidth
+                                            id="outlined-basic"
+                                            label="Tasks"
+                                            variant="outlined"
+                                            value={task}
+                                            onChange={e => handleTask(e, i)}
+                                        />
+                                        <Button onClick={e => handleRemoveTask(i)}>Remove task</Button>
+                                    </>
                                 ))
                             }
-                            <Button onClick={handleTaskCount}>Add task</Button>
+                            <Button onClick={handleAddTaskCount}>Add task</Button>
                         </Box>
                         <DialogActions>
                             <Button onClick={handleClose}>Close</Button>

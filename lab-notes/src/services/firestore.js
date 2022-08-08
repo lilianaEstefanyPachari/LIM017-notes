@@ -1,5 +1,5 @@
 import { db } from './firebaseConfig';
-import { addDoc, collection, onSnapshot  } from "firebase/firestore";
+import { addDoc, collection, onSnapshot, doc, deleteDoc   } from "firebase/firestore";
 
 const notesCollectionRef = collection(db, "notes");
 
@@ -20,4 +20,8 @@ export const updateData = (setNotes) => {
 export const setDataInFirestore = async (form) => {
     const docRef = await addDoc(notesCollectionRef, form);
     console.log(docRef.id)
+}
+
+export const deleteDocFirestore = async(id) => {
+    await deleteDoc(doc(db, "notes", id));
 }
