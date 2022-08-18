@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-// import { useAuth } from '../../context/authContext';
+import { useAuth } from '../../context/authContext';
 
 // import { useContext } from 'react';
 // import { context } from '../../context/authContext';
@@ -21,6 +21,9 @@ export default function Welcome() {
     event.preventDefault();
     navigate("/register");
   };
+
+  const {user} = useAuth();
+  console.log({user});
 
   // const authContext = useContext(context);
   // console.log(authContext)
